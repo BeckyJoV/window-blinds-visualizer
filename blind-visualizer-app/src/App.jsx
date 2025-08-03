@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
-import ImageUploader from './components/ImageUploader';
 import BlindOverlay from './components/BlindOverlay';
 import {
   FacebookShareButton,
@@ -13,10 +12,51 @@ import {
 
 const App = () => {
   const [image, setImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [color, setColor] = useState('#888');
   const [blindType, setBlindType] = useState('roller');
   const [shareUrl, setShareUrl] = useState('');
+  const [selectedStyles, setSelectedStyles] = useState([]);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState('');
   const captureRef = useRef(null);
+
+  const handleStyleChange = (e) => {
+    const options = Array.from(e.target.selectedOptions);
+    setSelectedStyles(options.map((opt) => opt.value));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setImage(URL.createObjectURL(file));
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile || selectedStyles.length === 0) {
+      alert("Please select an image and at least one style.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+      selectedStyles.forEach(style => formData.append("styles", style));
+      formData.append("response", "json");
+
+      const res = await fetch("/", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      setUploadedImageUrl(data.images?.[0] || '');
+      setShareUrl(data.share_urls?.[0] || '');
+    } catch (error) {
+      console.error("Upload failed:", error);
+    }
+  };
 
   const handleDownload = async () => {
     if (!captureRef.current) return;
@@ -24,15 +64,11 @@ const App = () => {
     try {
       const canvas = await html2canvas(captureRef.current);
       const dataUrl = canvas.toDataURL('image/png');
-
-      // Create download link
       const link = document.createElement('a');
       link.download = 'blind-visualizer.png';
       link.href = dataUrl;
       link.click();
-
-      // Optionally set share URL (e.g. upload to server or use data URL)
-      setShareUrl(dataUrl); // For demo purposes, using data URL
+      setShareUrl(dataUrl);
     } catch (error) {
       console.error('Download failed:', error);
     }
@@ -40,15 +76,30 @@ const App = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen text-center">
-      {/* Logo */}
       <img
         src="/exceptional-logo.png"
         alt="Exceptional Blinds company logo"
         className="w-24 mx-auto mb-4"
       />
-
       <h1 className="text-3xl font-bold mb-4">Blind Visualizer</h1>
-      <ImageUploader onImageLoad={setImage} />
+
+      {/* Upload and Style Selection */}
+      <div className="mb-4">
+        <input type="file" onChange={handleFileChange} />
+        <select multiple name="styles" onChange={handleStyleChange} className="mt-2 border rounded p-2">
+          {["style1.png", "style2.png", "style3.png"].map((style, index) => (
+            <option key={index} value={style}>
+              {style.replace(".png", "")}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={handleUpload}
+          className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded"
+        >
+          Upload to Server
+        </button>
+      </div>
 
       {/* Controls */}
       <div className="mt-4 flex justify-center items-center gap-4">
@@ -99,6 +150,14 @@ const App = () => {
           </a>
         )}
       </div>
+
+      {/* Server-generated image preview */}
+      {uploadedImageUrl && (
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-2">Server-Processed Image</h2>
+          <img src={uploadedImageUrl} alt="Processed result" className="mx-auto max-w-md" />
+        </div>
+      )}
 
       {/* Social Share Buttons */}
       {shareUrl && (

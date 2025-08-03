@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Room Image</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      max-width: 600px;
+      margin: auto;
+      background-color: #f9f9f9;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input[type="file"],
+    select,
+    button {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Upload a Room Image</h2>
+  <form method="POST" enctype="multipart/form-data">
+    <label for="image">Select Room Image:</label>
+    <input type="file" name="image" accept="image/*" required>
+
+    <label for="styles">Select Blind Styles:</label>
+    <select name="styles" multiple required>
+      <option value="roller.png">Roller</option>
+      <option value="venetian.png">Venetian</option>
+      <option value="roman.png">Roman</option>
+      <option value="vertical.png">Vertical</option>
+      <option value="shutter.png">Shutter</option>
+    </select>
+
+    <button type="submit">Preview Styles</button>
+  </form>
+</body>
+</html>
+
+
